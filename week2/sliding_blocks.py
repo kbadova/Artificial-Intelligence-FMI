@@ -59,7 +59,7 @@ def pathToMatrix(matrix):
     for path in paths:
         for matrix_list in path:
             if matrix in matrix_list:
-                return matrix_list.index(matrix) + 1
+                return matrix_list.index(matrix)
     return 0
 
 
@@ -82,6 +82,7 @@ def calculateManhatansRoad(mother_matrix, child_matrix):
 def calculateFunction(mother_matrix, child_matrix):
     road_length = pathToMatrix(mother_matrix) + 1
     h = calculateManhatansRoad(mother_matrix, child_matrix)
+
     f = h + road_length
     return f
 
@@ -94,7 +95,6 @@ def generateChildrenFromMatrixIndexes(matrix, zero_indexes):
     for matrix_child in children_matrixes:
 
         f = calculateFunction(matrix, matrix_child)  # [(A, f(A), (B, f(B), (C, f(C)]
-
         result.append((matrix_child, f))
 
     return result
@@ -115,9 +115,10 @@ def appendNewChildrenToPaths(state_children):
 
 # Обхожда всички листове с матрици и взима най-евтината f от paths =  [[(A, 4), (B, 5), (C, 7)], [ (D, 2), (O, 10)]]
 def getMostCheapChild():
-    functions = [matrix[1] for el in paths for matrix in el]
+    functions = [matrix[1] for el in paths for matrix in el if matrix[0] != initial_marrix]
     max_fn = max(functions)
     most_cheap_child = [matrix for el in paths for matrix in el if matrix[1] == max_fn]
+    return most_cheap_child[0]
 
 
 # paths =  [[(A, 4), (B, 5), (C, 7)], [ (D, 2), (O, 10)]]
@@ -145,11 +146,12 @@ def slide_blocks(matrix):
 
     # Децата от текущото състояние
     state_children = generateChildrenFromMatrixIndexes(matrix[0], zero_indexes)
-    # appendNewChildrenToPaths(state_children)
+    appendNewChildrenToPaths(state_children)
 
     # # Взима най-евтиното дете
-    # child = getMostCheapChild()
+    child = getMostCheapChild()
 
+    import ipdb; ipdb.set_trace()  # breakpoint 951ba6a1 //
     # # Минаваме през него
     # moveByChild(child)
 
@@ -166,6 +168,7 @@ def slide_blocks(matrix):
 def sliding_blocks():
     function = calculateFunction(initial_marrix, goal_matrix)
     paths.append([(initial_marrix, function)])
+    del paths[0]
     slide_blocks((initial_marrix, function))
 
 
