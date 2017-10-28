@@ -27,8 +27,8 @@ goal_matrix = [[1, 2, 3],
 
 
 # Добавя матричното състояние за обходено
-def moveByChild(child):
-    traversed.append(child)
+def moveByChild(child_matrix):
+    traversed.append(child_matrix)
 
 
 def geneateChildrenMatrixes(matrix, zero_indexes):
@@ -102,9 +102,9 @@ def generateChildrenFromMatrixIndexes(matrix, zero_indexes):
 
 def appendNewChildrenToPaths(state_children):
     # state_children = [(C, f(C)), (D, f(D))]
-    newPath = deepcopy(getByMatrixes)
     # newPath = [(A, f(A)), (B, f(B))]
     for child in state_children:
+        newPath = deepcopy(getByMatrixes)
         if newPath in paths:
             paths.remove(newPath)
 
@@ -124,7 +124,8 @@ def getMostCheapChild():
 # paths =  [[(A, 4), (B, 5), (C, 7)], [ (D, 2), (O, 10)]]
 def checkEveryPathHasFinished():
     for path in paths:
-        last_matrix = path.last()
+        last_from_path = path[len(path) - 1]
+        last_matrix = last_from_path
         if last_matrix[0] == goal_matrix:
             return True
     return False
@@ -140,6 +141,8 @@ def getElementIndexesFromMatrix(matrix, element):
 
 # matrix: (matrix, f)
 def slide_blocks(matrix):
+    import ipdb; ipdb.set_trace()  # breakpoint b6d6feb0 //
+    
     getByMatrixes.append(matrix)
     zero_indexes = getElementIndexesFromMatrix(matrix[0], 0)
     print(zero_indexes)
@@ -151,18 +154,17 @@ def slide_blocks(matrix):
     # # Взима най-евтиното дете
     child = getMostCheapChild()
 
-    import ipdb; ipdb.set_trace()  # breakpoint 951ba6a1 //
     # # Минаваме през него
-    # moveByChild(child)
+    moveByChild(child[0])
 
-    # everyPathHasFinished = checkEveryPathHasFinished()
-    # if not (everyPathHasFinished):
-    #     slide_blocks(child)
-    #     # printPosition
-    # else:
-    #     print("hahah")
-    #     return "ssfdf"
-    #     # return matrix_length
+    everyPathHasFinished = checkEveryPathHasFinished()
+    if not (everyPathHasFinished):
+        return slide_blocks(child)
+        # printPosition
+    else:
+        print("hahah")
+        return "ssfdf"
+        # return matrix_length
 
 
 def sliding_blocks():
