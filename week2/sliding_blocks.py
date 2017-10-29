@@ -2,8 +2,8 @@ from copy import deepcopy
 #  Списък от пътища, до които съм минала до момента
 paths = [[]]
 
-# Децата, през които имам възможност да мина и които не съм обходила
-children = []
+# Генерираните матрични състояния
+childrenStates = []
 
 # Състояния на матрицата, през които сме минали
 traversed = []
@@ -27,11 +27,11 @@ goal_matrix = [[1, 2, 3],
 
 
 # Добавя матричното състояние за обходено
-def moveByChild(child_matrix):
+def traverseMatrix(child_matrix):
     traversed.append(child_matrix)
 
 
-def geneateChildrenMatrixes(matrix, zero_indexes):
+def geneate_children_matrixes(matrix, zero_indexes):
     # Еxclude traversed
     zero_x = zero_indexes[0]
     zero_y = zero_indexes[1]
@@ -47,7 +47,8 @@ def geneateChildrenMatrixes(matrix, zero_indexes):
         newMatrix[index_pair[1]][index_pair[0]] = 0
         newMatrix[zero_y][zero_x] = number
 
-        if matrix not in traversed:
+        if newMatrix not in traversed or newMatrix not in childrenStates:
+            childrenStates.append(newMatrix)
             newMatrixes.append(newMatrix)
 
     return newMatrixes
@@ -55,15 +56,13 @@ def geneateChildrenMatrixes(matrix, zero_indexes):
 
 # Дава изминатия път до матрицата
 def pathToMatrix(matrix):
-
     for path in paths:
-        for matrix_list in path:
-            if matrix in matrix_list:
-                return matrix_list.index(matrix)
+        if path != [] and matrix == path[len(path) - 1][0]:
+            return len(path) - 1
     return 0
 
 
-def calculateManhatansRoad(mother_matrix, child_matrix):
+def calculate_manhatans_road(mother_matrix, child_matrix):
     result = []
     for row in mother_matrix:
         for column in row:
@@ -71,7 +70,7 @@ def calculateManhatansRoad(mother_matrix, child_matrix):
             y = mother_matrix.index(row)
             if mother_matrix[x][y] != child_matrix[x][y]:
                 element_value = mother_matrix[x][y]
-                child_indexes = getElementIndexesFromMatrix(child_matrix, element_value)
+                child_indexes = get_element_by_indexes_from_matrix(child_matrix, element_value)
                 X = x - child_indexes[0]
                 Y = y - child_indexes[1]
                 result.append(abs(X + Y))
@@ -81,30 +80,39 @@ def calculateManhatansRoad(mother_matrix, child_matrix):
 
 def calculateFunction(mother_matrix, child_matrix):
     road_length = pathToMatrix(mother_matrix) + 1
-    h = calculateManhatansRoad(mother_matrix, child_matrix)
+    h = calculate_manhatans_road(mother_matrix, child_matrix)
 
     f = h + road_length
     return f
 
 
 # Генерира възможните chidren състояния от текущото и за всяко дете, смята f от неего до крайната goal_matrix
-def generateChildrenFromMatrixIndexes(matrix, zero_indexes):
-    children_matrixes = geneateChildrenMatrixes(matrix, zero_indexes)  #  [A,B,C]
-
+def generate_children_from_matrix_indexes(matrix, zero_indexes):
+    children_matrixes = geneate_children_matrixes(matrix, zero_indexes)  #  [A,B,C]
     result = []
-    for matrix_child in children_matrixes:
 
+    for matrix_child in children_matrixes:
         f = calculateFunction(matrix, matrix_child)  # [(A, f(A), (B, f(B), (C, f(C)]
         result.append((matrix_child, f))
 
     return result
 
 
-def appendNewChildrenToPaths(state_children):
+def getMotherMatrixRoad(mother_matrix):
+    for path in paths:
+        if path[len(path) - 1][0] == mother_matrix[0]:
+            return path
+    return False
+
+
+def appendNewChildrenToPaths(mother_matrix, state_children):
     # state_children = [(C, f(C)), (D, f(D))]
     # newPath = [(A, f(A)), (B, f(B))]
+    currentRoad = getMotherMatrixRoad(mother_matrix)
     for child in state_children:
-        newPath = deepcopy(getByMatrixes)
+        newPath = deepcopy(currentRoad)
+        if currentRoad is False:
+            newPath = deepcopy(getByMatrixes)
         if newPath in paths:
             paths.remove(newPath)
 
@@ -115,23 +123,18 @@ def appendNewChildrenToPaths(state_children):
 
 # Обхожда всички листове с матрици и взима най-евтината f от paths =  [[(A, 4), (B, 5), (C, 7)], [ (D, 2), (O, 10)]]
 def getMostCheapChild():
-    functions = [matrix[1] for el in paths for matrix in el if matrix[0] != initial_marrix]
+    last_children_in_paths = [path[len(path) - 1] for path in paths]
+    not_traversed_children = [el for el in last_children_in_paths if el[0] not in traversed]
+    functions = [el[1] for el in not_traversed_children if el[0] != initial_marrix]
+    if functions == []:
+        return False
     max_fn = max(functions)
-    most_cheap_child = [matrix for el in paths for matrix in el if matrix[1] == max_fn]
+    most_cheap_child = [child for child in not_traversed_children if child[1] == max_fn]
+
     return most_cheap_child[0]
 
 
-# paths =  [[(A, 4), (B, 5), (C, 7)], [ (D, 2), (O, 10)]]
-def checkEveryPathHasFinished():
-    for path in paths:
-        last_from_path = path[len(path) - 1]
-        last_matrix = last_from_path
-        if last_matrix[0] == goal_matrix:
-            return True
-    return False
-
-
-def getElementIndexesFromMatrix(matrix, element):
+def get_element_by_indexes_from_matrix(matrix, element):
     for row in matrix:
         for column in row:
             if matrix[matrix.index(row)][row.index(column)] == element:
@@ -139,38 +142,51 @@ def getElementIndexesFromMatrix(matrix, element):
     return "No 0 found"
 
 
+def check_goal_not_in_paths():
+    for path in paths:
+        if path[len(path) - 1][0] == goal_matrix:
+            return True
+    return False
+
+
+def get_steps_to_goal():
+    for path in paths:
+        if path[len(path) - 1][0] == goal_matrix:
+            return len(path) - 1
+    return "No goal found"
+
+
 # matrix: (matrix, f)
 def slide_blocks(matrix):
-    import ipdb; ipdb.set_trace()  # breakpoint b6d6feb0 //
-    
-    getByMatrixes.append(matrix)
-    zero_indexes = getElementIndexesFromMatrix(matrix[0], 0)
-    print(zero_indexes)
 
-    # Децата от текущото състояние
-    state_children = generateChildrenFromMatrixIndexes(matrix[0], zero_indexes)
-    appendNewChildrenToPaths(state_children)
+    getByMatrixes.append(matrix)
+    traverseMatrix(matrix[0])
+
+    zero_indexes = get_element_by_indexes_from_matrix(matrix[0], 0)
+
+    # Генерира децата от текущото състояние
+    state_children = generate_children_from_matrix_indexes(matrix[0], zero_indexes)
+
+    # Добавя децата към пътищата на родителите им
+    appendNewChildrenToPaths(matrix, state_children)
 
     # # Взима най-евтиното дете
     child = getMostCheapChild()
 
-    # # Минаваме през него
-    moveByChild(child[0])
-
-    everyPathHasFinished = checkEveryPathHasFinished()
-    if not (everyPathHasFinished):
+    goal_not_in_paths = check_goal_not_in_paths()
+    if goal_not_in_paths is False:
         return slide_blocks(child)
-        # printPosition
-    else:
-        print("hahah")
-        return "ssfdf"
-        # return matrix_length
+
+    print("Steps needed")
+    print(get_steps_to_goal())
 
 
 def sliding_blocks():
     function = calculateFunction(initial_marrix, goal_matrix)
+    childrenStates.append(initial_marrix)
     paths.append([(initial_marrix, function)])
     del paths[0]
+
     slide_blocks((initial_marrix, function))
 
 
