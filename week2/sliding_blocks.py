@@ -12,14 +12,21 @@ traversed = []
 #  СЪбира през какви матрици сме минали до момента
 getByMatrixes = []
 
-
-# initial_marrix = [[0, 7, 2],
-#                   [1, 3, 4],
-#                   [5, 6, 8]]
-
+# right down left left
 initial_marrix = [[1, 2, 3],
-                  [4, 5, 6],
-                  [0, 7, 8]]
+                  [5, 0, 6],
+                  [4, 7, 8]]
+
+
+# # down left left
+# initial_marrix = [[1, 2, 3],
+#                   [0, 5, 6],
+#                   [4, 7, 8]]
+
+# left left
+# initial_marrix = [[1, 2, 3],
+#                   [4, 5, 6],
+#                   [0, 7, 8]]
 
 goal_matrix = [[1, 2, 3],
                [4, 5, 6],
@@ -125,11 +132,12 @@ def appendNewChildrenToPaths(mother_matrix, state_children):
 def getMostCheapChild():
     last_children_in_paths = [path[len(path) - 1] for path in paths]
     not_traversed_children = [el for el in last_children_in_paths if el[0] not in traversed]
+
     functions = [el[1] for el in not_traversed_children if el[0] != initial_marrix]
     if functions == []:
         return False
-    max_fn = max(functions)
-    most_cheap_child = [child for child in not_traversed_children if child[1] == max_fn]
+    min_fn = min(functions)
+    most_cheap_child = [child for child in not_traversed_children if child[1] == min_fn]
 
     return most_cheap_child[0]
 
@@ -152,8 +160,35 @@ def check_goal_not_in_paths():
 def get_steps_to_goal():
     for path in paths:
         if path[len(path) - 1][0] == goal_matrix:
-            return len(path) - 1
+            return (path, len(path) - 1)
     return "No goal found"
+
+
+def print_ways():
+    result_path = get_steps_to_goal()[0]
+
+    counter = 0
+    for matrix in result_path:
+        if counter < len(result_path) - 1:
+            zero_indexes = get_element_by_indexes_from_matrix(matrix[0], 0)
+            zero_x = zero_indexes[0]
+            zero_y = zero_indexes[1]
+
+            next_matrix = result_path[counter + 1]
+            next_zero_indexes = get_element_by_indexes_from_matrix(next_matrix[0], 0)
+            next_zero_x = next_zero_indexes[0]
+            next_zero_y = next_zero_indexes[1]
+
+            if (zero_x == next_zero_x and zero_y > next_zero_y):
+                print("up")
+            if (zero_x > next_zero_x and zero_y == next_zero_y):
+                print("right")
+            if (zero_x == next_zero_x and zero_y < next_zero_y):
+                print("down")
+            if (zero_x < next_zero_x and zero_y == next_zero_y):
+                print("left")
+
+            counter += 1
 
 
 # matrix: (matrix, f)
@@ -172,13 +207,13 @@ def slide_blocks(matrix):
 
     # # Взима най-евтиното дете
     child = getMostCheapChild()
-
     goal_not_in_paths = check_goal_not_in_paths()
     if goal_not_in_paths is False:
         return slide_blocks(child)
 
+    print_ways()
     print("Steps needed")
-    print(get_steps_to_goal())
+    print(get_steps_to_goal()[1])
 
 
 def sliding_blocks():
