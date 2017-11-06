@@ -23,22 +23,22 @@ traversed = []
 get_by_matrixes = []
 
 # up
-# initial_marrix = [[1, 2, 3],
+# initial_matrix = [[1, 2, 3],
 #                   [4, 5, 0],
 #                   [7, 8, 6]]
 
 # # right up left left
-# initial_marrix = [[1, 2, 3],
+# initial_matrix = [[1, 2, 3],
 #                   [5, 0, 6],
 #                   [4, 7, 8]]
 
 # # up left left
-# initial_marrix = [[1, 2, 3],
+# initial_matrix = [[1, 2, 3],
 #                   [0, 5, 6],
 #                   [4, 7, 8]]
 
 # left left
-# initial_marrix = [[1, 2, 3],
+# initial_matrix = [[1, 2, 3],
 #                   [4, 5, 6],
 #                   [0, 7, 8]]
 
@@ -147,7 +147,7 @@ def get_most_cheap_child():
     last_children_in_paths = [path[len(path) - 1] for path in paths]
     not_traversed_children = [el for el in last_children_in_paths if el[0] not in traversed]
 
-    functions = [el[1] for el in not_traversed_children if el[0] != initial_marrix]
+    functions = [el[1] for el in not_traversed_children if el[0] != initial_matrix]
     if functions == []:
         return False
     min_fn = min(functions)
@@ -230,26 +230,26 @@ def slide_blocks(matrix):
     print(get_steps_to_goal()[1])
 
 
-initial_marrix = []
+initial_matrix = []
 
 
 def sliding_blocks():
-    # function = calculate_function(initial_marrix, goal_matrix)
-    # childrenStates.append(initial_marrix)
-    # paths.append([(initial_marrix, function)])
+    # function = calculate_function(initial_matrix, goal_matrix)
+    # childrenStates.append(initial_matrix)
+    # paths.append([(initial_matrix, function)])
     number_of_blocks = arguments.n
-    initial_marrix = arguments.m
-    initial_marrix = eval(initial_marrix)
-    if sum(len(x) for x in initial_marrix) != number_of_blocks + 1:
+    initial_matrix = arguments.m
+    initial_matrix = eval(initial_matrix)
+    if sum(len(x) for x in initial_matrix) != number_of_blocks + 1:
         raise "This is not {}-th matrix".format(number_of_blocks + 1)
 
-    print(initial_marrix)
-    function = calculate_function(initial_marrix, goal_matrix)
-    childrenStates.append(initial_marrix)
-    paths.append([(initial_marrix, function)])
+    print(initial_matrix)
+    function = calculate_function(initial_matrix, goal_matrix)
+    childrenStates.append(initial_matrix)
+    paths.append([(initial_matrix, function)])
     del paths[0]
 
-    slide_blocks((initial_marrix, function))
+    slide_blocks((initial_matrix, function))
 
 
 if __name__ == "__main__":
