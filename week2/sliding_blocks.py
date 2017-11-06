@@ -22,11 +22,15 @@ traversed = []
 #  СЪбира през какви матрици сме минали до момента
 get_by_matrixes = []
 
-# right up left left
-initial_marrix = [[1, 2, 3],
-                  [5, 0, 6],
-                  [4, 7, 8]]
+# up
+# initial_marrix = [[1, 2, 3],
+#                   [4, 5, 0],
+#                   [7, 8, 6]]
 
+# # right up left left
+# initial_marrix = [[1, 2, 3],
+#                   [5, 0, 6],
+#                   [4, 7, 8]]
 
 # # up left left
 # initial_marrix = [[1, 2, 3],
@@ -224,6 +228,9 @@ def slide_blocks(matrix):
     print_ways()
     print("Steps needed")
     print(get_steps_to_goal()[1])
+
+
+initial_marrix = []
 
 
 def sliding_blocks():
