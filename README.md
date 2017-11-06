@@ -1,2 +1,2 @@
 # Intelligent-Systems-FMI
-A repo to store Intelligent Systems' fmi course homeworks
+A repo to store Artificial Intelligence' fmi course homeworks
