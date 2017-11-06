@@ -1,4 +1,14 @@
+import argparse
 from copy import deepcopy
+
+
+parser = argparse.ArgumentParser(description='Solving sliding blocks with Manhatan distance.')
+parser.add_argument('-n', type=int, required=True,
+                    help='Number of blocks')
+parser.add_argument('-m', required=True,
+                    help='Matrix')
+arguments = parser.parse_args()
+
 #  Списък от пътища, до които съм минала до момента
 paths = [[]]
 
@@ -12,13 +22,13 @@ traversed = []
 #  СЪбира през какви матрици сме минали до момента
 get_by_matrixes = []
 
-# right down left left
+# right up left left
 initial_marrix = [[1, 2, 3],
                   [5, 0, 6],
                   [4, 7, 8]]
 
 
-# # down left left
+# # up left left
 # initial_marrix = [[1, 2, 3],
 #                   [0, 5, 6],
 #                   [4, 7, 8]]
@@ -180,11 +190,11 @@ def print_ways():
             next_zero_y = next_zero_indexes[1]
 
             if (zero_x == next_zero_x and zero_y > next_zero_y):
-                print("up")
+                print("down")
             if (zero_x > next_zero_x and zero_y == next_zero_y):
                 print("right")
             if (zero_x == next_zero_x and zero_y < next_zero_y):
-                print("down")
+                print("up")
             if (zero_x < next_zero_x and zero_y == next_zero_y):
                 print("left")
 
@@ -217,6 +227,16 @@ def slide_blocks(matrix):
 
 
 def sliding_blocks():
+    # function = calculate_function(initial_marrix, goal_matrix)
+    # childrenStates.append(initial_marrix)
+    # paths.append([(initial_marrix, function)])
+    number_of_blocks = arguments.n
+    initial_marrix = arguments.m
+    initial_marrix = eval(initial_marrix)
+    if sum(len(x) for x in initial_marrix) != number_of_blocks + 1:
+        raise "This is not {}-th matrix".format(number_of_blocks + 1)
+
+    print(initial_marrix)
     function = calculate_function(initial_marrix, goal_matrix)
     childrenStates.append(initial_marrix)
     paths.append([(initial_marrix, function)])
