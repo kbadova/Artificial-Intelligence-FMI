@@ -50,3 +50,52 @@
 '''
 
 
+def create_matrix(n):
+    pass
+
+
+def initialize_matrix_with_queens():
+    pass
+
+
+def get_most_conflicted_queen():
+    pass
+
+
+def get_least_conflicted_queen():
+    pass
+
+
+def reverse_queens():
+    pass
+
+
+def has_conflicts():
+    pass
+
+
+def solve(matrix):
+    most_conflicted_queen = get_most_conflicted_queen()
+
+    least_conflicted_queen = get_least_conflicted_queen()
+
+    reversed_matrix = reverse_queens(most_conflicted_queen, least_conflicted_queen)
+
+    if has_conflicts(reversed_matrix):
+        solve(reversed_matrix)
+    return reversed_matrix
+
+
+def n_queens():
+    n = 4
+    matrix = create_matrix(n)
+
+    matrix = initialize_matrix_with_queens(matrix, n)
+
+    result = solve(matrix)
+
+    print(result)
+
+
+if __name__ == "__main__":
+    n_queens()
