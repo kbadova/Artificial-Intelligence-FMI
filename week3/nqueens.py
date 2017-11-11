@@ -39,6 +39,10 @@ arguments = parser.parse_args()
 
 expected queens_indexes for n = 4: [(0,1),(1,3),(2,0),(3,2)]
 expected queens_indexes for n = 5: [(0,1),(1,3),(2,0),(3,2),(4,4)]
+expected queens_indexes for n = 6: [(1, 2), (0, 4), (2, 0), (3, 5), (4, 3), (5, 1)],
+                                   [(0, 1), (1, 3), (2, 5), (3, 0), (5, 4), (4, 2)],
+                                   [(4, 5), (1, 0), (2, 4), (3, 1), (0, 3), (5, 2)],
+                                   [(0, 4), (1, 2), (2, 0), (4, 3), (3, 5), (5, 1)]
 
 '''
 
@@ -152,7 +156,7 @@ def calculate_conflicts(queens_indexes):
 
 def buld_matrix(n, reversed_indexes):
     matrix = []
-
+    print(reversed_indexes)
     for i in range(n):
         col = ['_'] * n
         el = [ind for ind in reversed_indexes if ind[1] == i][0]
@@ -169,9 +173,11 @@ def solve(n, queens_indexes):
     indexes_with_conflicts = calculate_conflicts(queens_indexes)
 
     most_and_least_conflicted_queens = get_most_and_least_conflicted_queens(n, indexes_with_conflicts)
-
     least_conflicted_queen = most_and_least_conflicted_queens[0]
     most_conflicted_queen = most_and_least_conflicted_queens[1]
+    if most_conflicted_queen is None or least_conflicted_queen is None:
+        return False
+
     traversed.append(least_conflicted_queen[0])
     traversed.append(most_conflicted_queen[0])
 
