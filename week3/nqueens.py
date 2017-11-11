@@ -1,5 +1,14 @@
 import random
+import argparse
 from copy import deepcopy
+
+
+parser = argparse.ArgumentParser(description='Solving n queens.')
+parser.add_argument('-n', type=int, required=True,
+                    help='Number of queens')
+arguments = parser.parse_args()
+
+
 '''
 1) initialize_matrix_with_queens
     queen_indexes_per_row = [0, 3, 1, 2]
@@ -26,6 +35,11 @@ from copy import deepcopy
         solve(newMartix)
 
     ако няма конфликти, строия матрицата и я връщам
+
+
+expected queens_indexes for n = 4: [(0,1),(1,3),(2,0),(3,2)]
+expected queens_indexes for n = 5: [(0,1),(1,3),(2,0),(3,2),(4,4)]
+
 '''
 
 
@@ -140,15 +154,11 @@ def buld_matrix(n, reversed_indexes):
     matrix = []
 
     for i in range(n):
-        col = ['_', '_', '_', '_']
+        col = ['_'] * n
         el = [ind for ind in reversed_indexes if ind[1] == i][0]
-
         col[el[0]] = "*"
         matrix.append(col)
-
     return matrix
-
-
 
 
 def solve(n, queens_indexes):
@@ -179,7 +189,7 @@ def solve(n, queens_indexes):
 def n_queens():
     global traversed
     traversed = []
-    n = 4
+    n = arguments.n
 
     queens_indexes = initialize_queen_indexes(n)
 
