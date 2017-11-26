@@ -17,6 +17,7 @@ def generateChildren(steppp):
     result = []
     index = 0
     for el in steppp:
+
         newStep = steppp
         newStep = newStep.replace('_', el)
         newStepList = list(newStep)
