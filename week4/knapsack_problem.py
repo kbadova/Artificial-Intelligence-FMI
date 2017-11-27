@@ -137,10 +137,7 @@ def mutate_children(new_generation, removed_items):
 
 
 def check_best_value(best_value):
-    fitness_values.reverse()
-    if len(fitness_values) < 3:
-        return False
-    return set(fitness_values[0: 3]) == {best_value}
+    return fitness_values.count(best_value) >= 3
 
 
 def evolution_cycle(max_weight, items_number, population):
