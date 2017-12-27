@@ -238,7 +238,10 @@ def sliding_blocks():
     # childrenStates.append(initial_matrix)
     # paths.append([(initial_matrix, function)])
     number_of_blocks = arguments.n
+
     initial_matrix = arguments.m
+
+    global initial_matrix
     initial_matrix = eval(initial_matrix)
     if sum(len(x) for x in initial_matrix) != number_of_blocks + 1:
         raise "This is not {}-th matrix".format(number_of_blocks + 1)
