@@ -70,7 +70,7 @@ def dfs(graph, root):
     graph[root] = children
 
     asd = set(graph[root]) - set(visited) - set(leaves)
-    for child in sorted(asd):
+    for child in asd:
         if 'RR_LL' in visited:
             return visited
         if child == 'RR_LL':
