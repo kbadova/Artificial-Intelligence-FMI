@@ -1,8 +1,15 @@
+import argparse
+
+parser = argparse.ArgumentParser(description='Solving junping frogs.')
+parser.add_argument('-n', type=int, required=True,
+                    help='Number of frogs in one hand')
+arguments = parser.parse_args()
+
 visited = []
 leaves = []
 
 
-def makeInitialPosition(n_frogs=2):
+def makeInitialPosition(n_frogs):
     return 'L' * n_frogs + '_' + 'R' * n_frogs
 
 
@@ -17,7 +24,6 @@ def generateChildren(steppp):
     result = []
     index = 0
     for el in steppp:
-
         newStep = steppp
         newStep = newStep.replace('_', el)
         newStepList = list(newStep)
@@ -42,6 +48,14 @@ def generateChildren(steppp):
         new_step_index = newStep.find("_")
 
         if abs(new_step_index - step_index) >= 3:  # more than 1 step
+            valid = False
+
+        # LLLR_RR -/> LLLRR_R, NO EXIT THEN
+        if steppp.rfind("L") + 2 < newStep.find("_"):
+            valid = False
+
+        # LL_RLRR  -/> _LLRLRR, NO EXIT THEN
+        if steppp.find("R") - 2 > newStep.index("_"):
             valid = False
 
         if valid:
@@ -73,7 +87,9 @@ def dfs(graph, root):
     for child in asd:
         if 'RR_LL' in visited:
             return visited
-        if child == 'RR_LL':
+        if 'RRR_LLL' in visited:
+            return visited
+        if child == 'RR_LL' or child == 'RRR_LLL':
             visited.append(root)
             visited.append(child)
             return visited
@@ -94,7 +110,8 @@ def dfs(graph, root):
 
 
 def frogs():
-    initial_root = makeInitialPosition()
+    n = arguments.n
+    initial_root = makeInitialPosition(n)
     initial_graph = {initial_root: set([])}
 
     result = dfs(initial_graph, initial_root)
@@ -104,6 +121,7 @@ def frogs():
         if el not in dfs_result:
             dfs_result.append(el)
     print(dfs_result)
+    print(len(dfs_result))
 
 
 if __name__ == "__main__":
