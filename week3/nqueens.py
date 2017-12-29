@@ -18,7 +18,7 @@ arguments = parser.parse_args()
                ['_', '_', '*, '_']]
 
 2) calculate_conflicts
-     връща списък с координматите на дадена матрица и колко кобфликта има тя -> [((1,2), 3), ((0,3), 2), ((2,1), 1)]
+     връща списък с координматите на дадена матрица и колко конфликта има тя -> [((1,2), 3), ((0,3), 2), ((2,1), 1)]
 
 3) get_queen_with_most_and_least_conflicts
     Връща tuple с цариците, които има най-малко и най-много конфликти
@@ -54,8 +54,14 @@ existing_qeen_indexes = []
 traversed = []
 
 
-def initialize_queen_indexes(n):
+def get_queens_indexes(queens_list, n):
     queens_indexes = []
+    for i in range(n):
+        queens_indexes.append((i, queens_list[i]))
+    return queens_indexes
+
+
+def initialize_queen_indexes(n):
     global existing_qeen_indexes
 
     # [1, 2, 0]
@@ -72,17 +78,19 @@ def initialize_queen_indexes(n):
 
     existing_qeen_indexes.append(queen_indexes_per_row)
 
-    for i in range(n):
-        queens_indexes.append((i, queen_indexes_per_row[i]))
+    queens_indexes = get_queens_indexes(queen_indexes_per_row, n)
 
-    # [(1, 1), (2, 2), (3, 0)]
-    return queens_indexes
+    # [(1, 1), (2, 2), (3, 0)], [1, 2, 0]
+    return queens_indexes, queen_indexes_per_row
 
 
 def get_most_and_least_conflicted_queens(n, indexes_with_conflicts):
     # Ако всички матрици имат равен брой конфликти, избираме на random някоя, която не е обходена
     if set([couple[1] for couple in indexes_with_conflicts]) == set([indexes_with_conflicts[0][1]]):
         not_traversed_indexes_with_conflicts = [q for q in indexes_with_conflicts if q[0] not in traversed]
+        not_traversed_len = len(not_traversed_indexes_with_conflicts)
+        if not_traversed_len == 0 or not_traversed_len == 1:
+            return None, None
         return random.sample(set(not_traversed_indexes_with_conflicts), 2)
 
     min_conflicted_queen = None
@@ -110,15 +118,24 @@ def get_most_and_least_conflicted_queens(n, indexes_with_conflicts):
     return (min_conflicted_queen, max_conflicted_queen)
 
 
-def reverse_queens_indexes(queens_indexes, most_conflicted_queen, least_conflicted_queen):
-    reversed_indexes = deepcopy(queens_indexes)
+def reverse_queens_indexes(queens_indexes, indexes_list, most_conflicted_queen, least_conflicted_queen):
+    queens_copy = str(queens_indexes)
+    reversed_queens = eval(queens_copy)
+
+    indexes_copy = str(indexes_list)
+    reversed_indexes = eval(indexes_copy)
+
     for i in range(len(queens_indexes)):
         if queens_indexes[i] == most_conflicted_queen[0]:
-            reversed_indexes[i] = least_conflicted_queen[0]
-        if queens_indexes[i] == least_conflicted_queen[0]:
-            reversed_indexes[i] = most_conflicted_queen[0]
+            reversed_queens[i] = least_conflicted_queen[0]
 
-    return reversed_indexes
+            reversed_indexes[i] = least_conflicted_queen[0][1]
+
+        if queens_indexes[i] == least_conflicted_queen[0]:
+            reversed_queens[i] = most_conflicted_queen[0]
+            reversed_indexes[i] = most_conflicted_queen[0][1]
+
+    return reversed_queens, reversed_indexes
 
 
 def has_conflicts(reversed_indexes):
@@ -134,7 +151,8 @@ def calculate_conflicts(queens_indexes):
 
     for queen in queens_indexes:
         conflicts = 0
-        list_with_queens_indexes = deepcopy(queens_indexes)
+        copy_list = str(queens_indexes)
+        list_with_queens_indexes = eval(copy_list)
         list_with_queens_indexes.remove(queen)
         rest_queens = list_with_queens_indexes
 
@@ -154,18 +172,36 @@ def calculate_conflicts(queens_indexes):
     return indexes_with_conflicts
 
 
-def buld_matrix(n, reversed_indexes):
+result_matrixes = []
+
+
+def finish_matrix(reversed_queens):
+    global result_matrixes
+    print(reversed_queens)
+    result_matrixes.append(reversed_queens)
+    return result_matrixes
+
+
+def build_matrix(n, reversed_queens):
+    global result_matrixes
+    print("all")
+    print(result_matrixes)
+    coordinates = result_matrixes[0]
+    
+    print("coordinates")
+    print(coordinates)
     matrix = []
-    print(reversed_indexes)
     for i in range(n):
         col = ['_'] * n
-        el = [ind for ind in reversed_indexes if ind[1] == i][0]
-        col[el[0]] = "*"
+        el = [ind for ind in coordinates if ind[0] == i][0]
+        col[el[1]] = "*"
         matrix.append(col)
-    return matrix
 
+    for col in matrix:
+        print(",".join(str(x) for x in col))
+    print(matrix)
 
-def solve(n, queens_indexes):
+def solve(n, queens_indexes, indexes_list):
     # Aко сме обходили всички царици и не сме намирили решение, return False и рекурсивно викам пак n_queens
     if set(queens_indexes) == set(traversed):
         return False
@@ -175,21 +211,28 @@ def solve(n, queens_indexes):
     most_and_least_conflicted_queens = get_most_and_least_conflicted_queens(n, indexes_with_conflicts)
     least_conflicted_queen = most_and_least_conflicted_queens[0]
     most_conflicted_queen = most_and_least_conflicted_queens[1]
+
     if most_conflicted_queen is None or least_conflicted_queen is None:
         return False
 
     traversed.append(least_conflicted_queen[0])
     traversed.append(most_conflicted_queen[0])
 
-    reversed_indexes = reverse_queens_indexes(queens_indexes, most_conflicted_queen, least_conflicted_queen)
-    if reversed_indexes in existing_qeen_indexes:
+    _, reversed_indexes = reverse_queens_indexes(
+        queens_indexes,
+        indexes_list,
+        most_conflicted_queen,
+        least_conflicted_queen)
+
+    reversed_queens = get_queens_indexes(reversed_indexes, n)
+    if reversed_queens in existing_qeen_indexes:
         return False
 
-    if has_conflicts(reversed_indexes):
+    has_still_conflicts = has_conflicts(reversed_queens)
+    if has_still_conflicts is True:
+        solve(n, reversed_queens, reversed_indexes)
 
-        return solve(n, reversed_indexes)
-
-    return buld_matrix(n, reversed_indexes)
+    return finish_matrix(reversed_queens)
 
 
 def n_queens():
@@ -197,17 +240,17 @@ def n_queens():
     traversed = []
     n = arguments.n
 
-    queens_indexes = initialize_queen_indexes(n)
+    queens_indexes, indexes_list = initialize_queen_indexes(n)
 
     if queens_indexes is False:
         return n_queens()
 
-    result = solve(n, queens_indexes)
+    result = solve(n, queens_indexes, indexes_list)
     if result is False:
         return n_queens()
 
     if result is not False:
-        print(result)
+        build_matrix(n, result)
 
 
 if __name__ == "__main__":
