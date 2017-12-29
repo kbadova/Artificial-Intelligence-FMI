@@ -65,27 +65,28 @@ initial_matrix = [[7, 2, 3], [4,0, 5], [8,1,6]]
  goal_matrix = [[1, 2, 3], [4, 0, 5], [7, 8, 6]]
 
  -> 13 steps ok
-right
-down
-left
-up
-up
-right
-down
-left
-down
-right
-up
-left
-left
 goal_matrix = [[1, 2, 3], [4, 5, 0], [7, 8, 6]]
 
  -> 14 steps ok
+right
+down
+left
+up
+up
+right
+down
+left
+down
+right
+up
+left
+left
+up
 goal_matrix = [[1, 2, 3], [4, 5, 6], [7, 8, 0]]
 """
 
-# [1, 7, 4, 6, 8, 3, 2, 5, 0]
-# [[6, 5, 3], [2, 4, 8], [7, 0, 1]] zabiva
+# initial_matrix = [[1, 7, 4], [6, 8, 3], [2, 5, 0]] -> steps
+# initial_matrix = [[6, 5, 3], [2, 4, 8], [7, 0, 1]] -> ? steps
 
 
 # Добавя матричното състояние за обходено
