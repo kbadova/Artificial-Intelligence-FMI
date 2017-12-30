@@ -3,12 +3,11 @@ import argparse
 from copy import copy
 from collections import deque
 
-from ..tail_recursion.recursive_decorator import tail_call_optimized
+from recursive_decorator import tail_call_optimized
 parser = argparse.ArgumentParser(description='Solving n queens.')
 parser.add_argument('-n', type=int, required=True,
                     help='Number of queens')
 arguments = parser.parse_args()
-
 
 '''
 1) initialize_matrix_with_queens
@@ -173,11 +172,10 @@ def build_matrix(n, reversed_queens, has_still_conflicts):
         col[el[0]] = "*"
         matrix.append(col)
 
-    for col in matrix:
-        print(",".join(str(x) for x in col))
-
-    print(matrix)
-    print("--------------------------------")
+    if has_still_conflicts is False:
+        print("Doesnt have conflicts")
+        for col in matrix:
+            print(",".join(str(x) for x in col))
 
 
 def solve(n, queens_indexes, indexes_list):
@@ -212,7 +210,6 @@ def solve(n, queens_indexes, indexes_list):
     if has_still_conflicts is True:
         return solve(n, reversed_queens, reversed_indexes)
 
-    print("FOUNDDDDDDDDDDDDddddddddddddddddddddddd")
     return build_matrix(n, reversed_queens, has_still_conflicts)
 
 
