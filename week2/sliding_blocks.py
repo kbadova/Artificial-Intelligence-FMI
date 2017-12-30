@@ -1,7 +1,9 @@
 import argparse
 import sys
 from copy import deepcopy
-sys.setrecursionlimit(1800)
+from recursive_decorator import tail_call_optimized
+
+# sys.setrecursionlimit(1800)
 
 parser = argparse.ArgumentParser(description='Solving sliding blocks with Manhatan distance.')
 parser.add_argument('-n', type=int, required=True,
@@ -295,6 +297,7 @@ def slide(matrix):
 
 
 # matrix: (matrix, f)
+@tail_call_optimized
 def slide_blocks(matrix):
     dd = check_goal_not_in_paths()
     has_found_solution = False
