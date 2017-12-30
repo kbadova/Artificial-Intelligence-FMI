@@ -1,8 +1,9 @@
 import random
 import argparse
-from copy import deepcopy
+from copy import copy
+from collections import deque
 
-
+from ..tail_recursion.recursive_decorator import tail_call_optimized
 parser = argparse.ArgumentParser(description='Solving n queens.')
 parser.add_argument('-n', type=int, required=True,
                     help='Number of queens')
@@ -48,14 +49,14 @@ expected queens_indexes for n = 6: [(1, 2), (0, 4), (2, 0), (3, 5), (4, 3), (5, 
 
 
 # Списък със съществуващи индекси
-existing_qeen_indexes = []
+existing_qeen_indexes = deque()
 
 # Списък с обходените елементи от текущия списък с индекси
-traversed = []
+traversed = deque()
 
 
 def get_queens_indexes(queens_list, n):
-    queens_indexes = []
+    queens_indexes = deque()
     for i in range(n):
         queens_indexes.append((i, queens_list[i]))
     return queens_indexes
@@ -119,23 +120,16 @@ def get_most_and_least_conflicted_queens(n, indexes_with_conflicts):
 
 
 def reverse_queens_indexes(queens_indexes, indexes_list, most_conflicted_queen, least_conflicted_queen):
-    queens_copy = str(queens_indexes)
-    reversed_queens = eval(queens_copy)
-
-    indexes_copy = str(indexes_list)
-    reversed_indexes = eval(indexes_copy)
+    reversed_indexes = copy(indexes_list)
 
     for i in range(len(queens_indexes)):
         if queens_indexes[i] == most_conflicted_queen[0]:
-            reversed_queens[i] = least_conflicted_queen[0]
-
             reversed_indexes[i] = least_conflicted_queen[0][1]
 
         if queens_indexes[i] == least_conflicted_queen[0]:
-            reversed_queens[i] = most_conflicted_queen[0]
             reversed_indexes[i] = most_conflicted_queen[0][1]
 
-    return reversed_queens, reversed_indexes
+    return reversed_indexes
 
 
 def has_conflicts(reversed_indexes):
@@ -147,12 +141,11 @@ def has_conflicts(reversed_indexes):
 
 
 def calculate_conflicts(queens_indexes):
-    indexes_with_conflicts = []
+    indexes_with_conflicts = deque()
 
     for queen in queens_indexes:
         conflicts = 0
-        copy_list = str(queens_indexes)
-        list_with_queens_indexes = eval(copy_list)
+        list_with_queens_indexes = copy(queens_indexes)
         list_with_queens_indexes.remove(queen)
         rest_queens = list_with_queens_indexes
 
@@ -172,34 +165,20 @@ def calculate_conflicts(queens_indexes):
     return indexes_with_conflicts
 
 
-result_matrixes = []
-
-
-def finish_matrix(reversed_queens):
-    global result_matrixes
-    print(reversed_queens)
-    result_matrixes.append(reversed_queens)
-    return result_matrixes
-
-
-def build_matrix(n, reversed_queens):
-    global result_matrixes
-    print("all")
-    print(result_matrixes)
-    coordinates = result_matrixes[0]
-    
-    print("coordinates")
-    print(coordinates)
-    matrix = []
+def build_matrix(n, reversed_queens, has_still_conflicts):
+    matrix = deque()
     for i in range(n):
         col = ['_'] * n
-        el = [ind for ind in coordinates if ind[0] == i][0]
-        col[el[1]] = "*"
+        el = [ind for ind in reversed_queens if ind[1] == i][0]
+        col[el[0]] = "*"
         matrix.append(col)
 
     for col in matrix:
         print(",".join(str(x) for x in col))
+
     print(matrix)
+    print("--------------------------------")
+
 
 def solve(n, queens_indexes, indexes_list):
     # Aко сме обходили всички царици и не сме намирили решение, return False и рекурсивно викам пак n_queens
@@ -218,7 +197,7 @@ def solve(n, queens_indexes, indexes_list):
     traversed.append(least_conflicted_queen[0])
     traversed.append(most_conflicted_queen[0])
 
-    _, reversed_indexes = reverse_queens_indexes(
+    reversed_indexes = reverse_queens_indexes(
         queens_indexes,
         indexes_list,
         most_conflicted_queen,
@@ -229,15 +208,18 @@ def solve(n, queens_indexes, indexes_list):
         return False
 
     has_still_conflicts = has_conflicts(reversed_queens)
+
     if has_still_conflicts is True:
-        solve(n, reversed_queens, reversed_indexes)
+        return solve(n, reversed_queens, reversed_indexes)
 
-    return finish_matrix(reversed_queens)
+    print("FOUNDDDDDDDDDDDDddddddddddddddddddddddd")
+    return build_matrix(n, reversed_queens, has_still_conflicts)
 
 
+@tail_call_optimized
 def n_queens():
     global traversed
-    traversed = []
+    traversed = deque()
     n = arguments.n
 
     queens_indexes, indexes_list = initialize_queen_indexes(n)
@@ -249,9 +231,8 @@ def n_queens():
     if result is False:
         return n_queens()
 
-    if result is not False:
-        build_matrix(n, result)
-
 
 if __name__ == "__main__":
     n_queens()
+
+
