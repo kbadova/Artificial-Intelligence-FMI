@@ -1,6 +1,7 @@
 import argparse
 import itertools
 import random
+from recursive_decorator import tail_call_optimized
 
 parser = argparse.ArgumentParser(description='Solving knapsack problem.')
 parser.add_argument('-M', type=int, required=True,
@@ -17,20 +18,20 @@ arguments = parser.parse_args()
 """
 Example Input:
 python knapsack_problem.py -M 5000 -N 201 -file test_data.txt
-python knapsack_problem.py -M 165 -N 165 -file test_data.txt
+python knapsack_problem.py -M 165 -N 165 -file test_data2.txt
 
     or
 python knapsack_problem.py -M 5 -N 3 -items "[(3, 2), (1, 5), (2, 3)]"
 
 1) генерирам всички възможни раници, такива че max тегло вътре е < M
-2) пре1смятам фитнес фунцкията - извежда макс цена от всички items
+2) пресмятам фитнес фунцкията - извежда макс цена от всички items
 3) sort по  фитнес фунцкията
-3) режа най-слабите 20§
+3) режа най-слабите 20%
 4) кръстосвам останалите докато не получа първоначалния брoй в популацията
 5) мутирам 5% от децата децата
 
 
-и това докато не получа 3 еднакви поколения с една  и съша макс цена(финтнес фънк)
+и това докато не получа 3 еднакви поколения с една  и съща макс цена(финтнес фънк)
 """
 
 # Държи резултатите от фитнес функцията
@@ -63,6 +64,9 @@ def calculate_fitness_func(population):
     max_value = 0
 
     for sack in population:
+        if sack is False:
+            import ipdb; ipdb.set_trace()  # breakpoint 4cb8419e //
+
         price_of_sack = calculate_items_price(sack)
         if price_of_sack > max_value:
             max_value = price_of_sack
@@ -76,79 +80,75 @@ def remove_20_percent_of_population(sorted_population, items_number):
     return sorted_population[0: items_number - items_number_to_remove], items_number_to_remove
 
 
-def generate_child(p1, p2):
+def generate_child(p1, p2, best_population):
     born_child = []
-    children_combinations = itertools.combinations(p1 + p2, 2)
-    born_child = [child for child in children_combinations if child != p1 and child != p2]
+    children_combinations = itertools.combinations(set(p1 + p2), 2)
 
+    born_child = [child for child in children_combinations if child != p1[0] and child != p2[0] and child not in best_population]
     if len(born_child) == 0:
         return False
+    # new_child = (born_child[0][0][0] + born_child[0][1][0], born_child[0][0][1] + born_child[0][1][1])
+    # return new_child
     return born_child[0]
 
 
 # Проверява дали сакът-дете не надминавам максималната допустимост на раницата M
-def is_valid_child(child, max_weight, new_generation):
-    return calculate_items_weight(child) <= max_weight and child not in new_generation
+def is_valid_child(child, max_weight, best_population):
+    return calculate_items_weight(child) <= max_weight and child not in best_population
+
+
+def select_non_existing_item_in_sack(new_generation):
+    separate_items = [t[0] for t in initial_items]
+    for i in range(len(separate_items)):
+        if separate_items[i] not in [s[0] for s in new_generation] + [s[1] for s in new_generation if len(s) > 1]:
+            return (separate_items[i], )
+
+    return random.choice(initial_items)
 
 
 def crossover_population(best_population, removed_items_count, max_weight):
     new_generation = []
     new_children_count = 0
 
-    while new_children_count < removed_items_count:
-        parents = random.sample(best_population, 2)
-        parent1 = parents[0]
-        parent2 = parents[1]
+    parents = random.sample(best_population, 2)
+    parent1 = parents[0]
+    parent2 = parents[1]
 
-        child = generate_child(parent1, parent2)
-        if child is False:
-            continue
-        if is_valid_child(child, max_weight, new_generation):
-            new_children_count += 1
-            new_generation.append(child)
-
-    return new_generation + parents
-
-
-def select_non_existing_item_in_sack(new_generation):
-    separate_items = [t[0] for t in initial_items]
-    for i in range(len(separate_items)):
-        print(i)
-
-        if separate_items[i] not in [s[0] for s in new_generation] + [s[1] for s in new_generation if len(s) > 1]:
-            return (separate_items[i], )
-
-    print("recursion here")
+    child = generate_child(parent1, parent2, best_population)
+    if child is False:
+        return parents
+    return [child] + parents
 
 
 # Взима дете от новото поколение и го swap-ва с randomly избран item от първоначалните items
 def mutate_children(new_generation, removed_items_count):
-    """
-    Ако процента е много малък ( < 0 ), това означава че имам много малко item-и в сака
-    което налага задължителна мутация, иначе ще останат децата и родителите
-    """
-    mutate_children_count = round(removed_items_count * 0.05) or 1
+    mutate_children_count = round(removed_items_count * 0.05)
+    initial_count = len(initial_items)
+    new_generation_count = len(new_generation)
 
     mutate_children = 0
-    while mutate_children < mutate_children_count:
+    while mutate_children < initial_count - new_generation_count:
         random_child_to_remove = random.choice(new_generation)
         new_generation.remove(random_child_to_remove)
 
-        # Премахва item-и, които са вече в new_generation, за да можем да вкараме различни
-        item_to_import = select_non_existing_item_in_sack(new_generation)
-        new_generation.append(item_to_import)
+        random_child_to_append = random.choice(initial_items)
+        new_generation.append(random_child_to_append)
+
         mutate_children += 1
 
     return new_generation
 
 
 def check_best_value(best_value):
-    return fitness_values.count(best_value) >= 3
+    best_value_counts = len(fitness_values)
+    if best_value_counts >= 3:
+        last_3_values = fitness_values[best_value_counts - 3:best_value_counts]
+        return len(set(last_3_values)) == 1
+    return False
 
 
+@tail_call_optimized
 def evolution_cycle(max_weight, items_number, population):
-    import ipdb; ipdb.set_trace()  # breakpoint 037ed78f //
-
     fitness_value = calculate_fitness_func(population)
 
     global fitness_values
@@ -156,10 +156,10 @@ def evolution_cycle(max_weight, items_number, population):
 
     print(fitness_value)
 
-    # population.sort(key=lambda r: calculate_items_price(r))
-    # population.reverse()
+    population.sort(key=lambda r: calculate_items_price(r))
+    population.reverse()
 
-    # Премахва 20% от сортираната популацията -> т.е. реже 20§ най-евтини раници
+    # Махам 20% които са най-евтини
     best_population, removed_items_count = remove_20_percent_of_population(population, items_number)
 
     # Връща новите деца и  родителите им
@@ -192,7 +192,6 @@ def knapsack_problem():
         items_number = len(items)
 
     items = [(item, ) for item in items]
-
     global initial_items
     initial_items = items
 
