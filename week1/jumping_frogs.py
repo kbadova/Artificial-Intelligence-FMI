@@ -13,6 +13,10 @@ def makeInitialPosition(n_frogs):
     return 'L' * n_frogs + '_' + 'R' * n_frogs
 
 
+def makeResultPosition(n_frogs):
+    return 'R' * n_frogs + '_' + 'L' * n_frogs
+
+
 def swap(text, ch1, ch2):
     text = text.replace(ch2, '!',)
     text = text.replace(ch1, ch2)
@@ -79,17 +83,15 @@ def markAsLeaf(step):
     leaves.append(step)
 
 
-def dfs(graph, root):
+def dfs(graph, root, result_position):
     children = generateChildren(root)
     graph[root] = children
 
     asd = set(graph[root]) - set(visited) - set(leaves)
     for child in asd:
-        if 'RR_LL' in visited:
+        if result_position in visited:
             return visited
-        if 'RRR_LLL' in visited:
-            return visited
-        if child == 'RR_LL' or child == 'RRR_LLL':
+        if child == result_position:
             visited.append(root)
             visited.append(child)
             return visited
@@ -100,11 +102,11 @@ def dfs(graph, root):
         if not has_valid_children:
             markAsLeaf(child)
             markAsLeaf(root)
-            dfs(graph, root)
+            dfs(graph, root, result_position)
 
         if has_valid_children:
             visited.append(root)
-            dfs(graph, child)
+            dfs(graph, child, result_position)
 
     return visited
 
@@ -114,7 +116,9 @@ def frogs():
     initial_root = makeInitialPosition(n)
     initial_graph = {initial_root: set([])}
 
-    result = dfs(initial_graph, initial_root)
+    result_position = makeResultPosition(n)
+
+    result = dfs(initial_graph, initial_root, result_position)
 
     dfs_result = []
     for el in result:
