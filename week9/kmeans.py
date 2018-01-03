@@ -1,5 +1,6 @@
 import argparse
 import random
+import datetime
 from collections import deque
 import plotly.plotly as py
 import plotly.graph_objs as go
@@ -25,8 +26,8 @@ Steps to reproduce:
 
 points = deque()
 centroids = deque()
-
-
+# Stores for each centroid his points
+plot = {}
 
 # Create random data with numpy
 
@@ -46,35 +47,134 @@ trace0 = go.Scatter(
 
 
 def plot_kmeans():
-    centroids_x = [c[0] for c in centroids]
-    centroids_y = [c[1] for c in centroids]
+    colors = ['black', 'red', 'green', 'blue']
+    plot_data = {}
+    plots = []
+    for centr in plot:
 
-    points_x = [p[0] for p in points]
-    points_y = [p[1] for p in points]
+        centr_points = plot[centr]
+        points_x = [p[0] for p in centr_points]
+        points_y = [p[1] for p in centr_points]
+        color = random.sample(colors, 1)[0]
+        plot_data = {
+            'x': points_x,
+            'y': points_y,
+            'mode': 'markers',
+            'name': 'markers',
+            'marker': dict(size=3, color=color)
+        }
+        colors.remove(color)
 
-    plot_data = {
-        'x': points_x,
-        'y': points_y,
-        'mode': 'markers',
-        'name': 'markers'
-    }
+        centr = eval(centr)
 
-    plot = go.Scatter(**plot_data)
+        center_data = {
+            'x': [centr[0]],
+            'y': [centr[1]],
+            'mode': 'markers',
+            'name': 'markers',
+            'marker': dict(size=3, color='white')
+        }
+        plots_scatter = go.Scatter(**plot_data)
+        center_scatter = go.Scatter(**center_data)
+        plots += [plots_scatter]
+        plots += [center_scatter]
 
-    py.iplot([plot], filename='scatter-mode')
+    py.iplot(plots, filename='{}'.format(str(datetime.datetime.now().date())))
 
 
 def initialize_centroids(k):
-    global points
     global centroids
 
-    centroids = random.sample(points, k)
-    points_without_centroids = set(points) - set(centroids)
-    points = list(points_without_centroids)
+    min_x_point = min(p[0] for p in points)
+    max_x_point = max(p[0] for p in points)
+
+    min_y_point = min(p[1] for p in points)
+    max_y_point = max(p[1] for p in points)
+
+    for i in range(k):
+        centroid_x = random.uniform(float(min_x_point), float(max_x_point))
+        centroid_y = random.uniform(float(min_y_point), float(max_y_point))
+
+        centroids.append((round(centroid_x, 2), round(centroid_y, 2)))
 
 
-def solve_kmeans():
-    pass
+def calculate_distance_to_centroid(point, centroid):
+    '''
+     Distance = sqrt(pow(x2−x1, 2)+ pow(y2−y1, 2))
+    '''
+    x_diff = float(centroid[0]) - float(point[0])
+    y_diff = float(centroid[1]) - float(point[1])
+
+    return (pow(x_diff, 2) + pow(y_diff, 2))**(1 / 2)
+
+
+def get_smallest_distance_from_point_to_centroid(point):
+    cetroids_distances = []
+    for centroid in centroids:
+        distance_to_centroid = calculate_distance_to_centroid(point, centroid)
+        cetroids_distances.append((centroid, distance_to_centroid))
+
+    return min(cetroids_distances, key=lambda c: c[1])
+
+
+def attach_points_to_centroids():
+    global plot
+
+    for point in points:
+        centroid, _ = get_smallest_distance_from_point_to_centroid(point)
+        if str(centroid) not in plot:
+            plot[str(centroid)] = [point]
+        else:
+
+            plot[str(centroid)] += [point]
+
+    return plot
+
+
+def recenter_clusters(k):
+    the_same_centroids = []
+
+    new_plot = {}
+    new_centroids = deque()
+    for centroid in plot:
+        centr_points = plot[centroid]
+        number_of_points = len(centr_points)
+        points_mean_x = sum([float(p[0]) for p in centr_points]) / number_of_points
+        points_mean_y = sum([float(p[1]) for p in centr_points]) / number_of_points
+        new_center = (round(points_mean_x, 2), round(points_mean_y, 2))
+
+        if str(new_center) == centroid:
+            print("here")
+            the_same_centroids.append(centroid)
+        else:
+            new_plot[str(new_center)] = centr_points
+
+        new_centroids.append(new_center)
+
+    global plot
+    global centroids
+    plot = new_plot
+    centroids = new_centroids
+
+    return len(the_same_centroids) == k
+
+
+def solve_kmeans(k):
+    has_result = False
+    while has_result is False:
+        attach_points_to_centroids()
+        has_result = recenter_clusters(k)
+
+        plot_kmeans()
+
+        if has_result is True:
+            print("finish")
+            print("centroids")
+            print(centroids)
+            break
+        print("centroids")
+        print(centroids)
+        return solve_kmeans(k)
 
 
 def kmeans():
@@ -91,9 +191,13 @@ def kmeans():
 
     initialize_centroids(k)
 
-    #plot = solve_kmeans()
+    solve_kmeans(k)
 
-    plot_kmeans(plot)
+    # plot_kmeans()
+
 
 if __name__ == "__main__":
     kmeans()
+
+
+# https://plot.ly/~badovakrasi/35/markers/#plot
