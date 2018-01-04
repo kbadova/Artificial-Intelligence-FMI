@@ -153,7 +153,7 @@ def evolution_cycle(max_weight, items_number, population):
     # Махам 20% които са най-евтини
     best_population, removed_items_count = remove_20_percent_of_population(population, items_number)
 
-    # Връща новите деца и  родителите им
+    # Връща новите деца
     children = crossover_population(best_population, removed_items_count)
 
     # Връща поколението с мутирани деца, ако можем да мутираме
