@@ -1,11 +1,11 @@
 import argparse
 import random
-import datetime
-from collections import deque
-import plotly.plotly as py
-import plotly.graph_objs as go
-import numpy as np
+import matplotlib.pyplot as plt
 
+from collections import deque
+
+plt.rcParams['figure.figsize'] = (16, 9)
+plt.style.use('ggplot')
 
 parser = argparse.ArgumentParser(description='Solving kmenas.')
 parser.add_argument('-k', type=int, required=True)
@@ -29,73 +29,53 @@ centroids = deque()
 # Stores for each centroid his points
 plot = {}
 
-# Create random data with numpy
-
-N = 100
-random_x = np.linspace(0, 1, N)
-random_y0 = np.random.randn(N) + 5
-random_y1 = np.random.randn(N)
-random_y2 = np.random.randn(N) - 5
-
-# Create traces
-trace0 = go.Scatter(
-    x=random_x,
-    y=random_y0,
-    mode='markers',
-    name='markers'
-)
+counter = 0
+centroids_colors = {}
 
 
 def plot_kmeans():
-    colors = ['black', 'red', 'green', 'blue']
-    plot_data = {}
-    plots = []
-    for centr in plot:
+    # fig = plt.figure()
+    # ax1 = fig.add_subplot(111)
+    # for tick in ax1.xaxis.get_major_ticks():
+    #     tick.label.set_fontsize(3)
+    #     tick.label.set_rotation('vertical')
 
+    # for tick in ax1.yaxis.get_major_ticks():
+    #     tick.label.set_fontsize(3)
+
+    for centr in plot:
         centr_points = plot[centr]
+        color = centroids_colors[centr]
+        centr_coord = eval(centr)
+
         points_x = [p[0] for p in centr_points]
         points_y = [p[1] for p in centr_points]
-        color = random.sample(colors, 1)[0]
-        plot_data = {
-            'x': points_x,
-            'y': points_y,
-            'mode': 'markers',
-            'name': 'markers',
-            'marker': dict(size=3, color=color)
-        }
-        colors.remove(color)
 
-        centr = eval(centr)
+        plt.scatter(points_x, points_y, marker=".", color=color, s=30)
+        plt.scatter([centr_coord[0]], centr_coord[1], marker=".", color=color, s=360)
 
-        center_data = {
-            'x': [centr[0]],
-            'y': [centr[1]],
-            'mode': 'markers',
-            'name': 'markers',
-            'marker': dict(size=3, color='white')
-        }
-        plots_scatter = go.Scatter(**plot_data)
-        center_scatter = go.Scatter(**center_data)
-        plots += [plots_scatter]
-        plots += [center_scatter]
-
-    py.iplot(plots, filename='{}'.format(str(datetime.datetime.now().date())))
+    global counter
+    counter += 1
+    # plt.xlim(0, 5)
+    # plt.ylim(0, 5)
+    plt.savefig("{}.png".format(counter), dpi=300)  # the dpi setting has to play nicely with the chosen markersizes!
 
 
 def initialize_centroids(k):
+    global points
     global centroids
+    global centroids_colors
 
-    min_x_point = min(p[0] for p in points)
-    max_x_point = max(p[0] for p in points)
+    colors = ['yellow', 'red', 'green', 'blue', 'orange']
 
-    min_y_point = min(p[1] for p in points)
-    max_y_point = max(p[1] for p in points)
+    centroids = random.sample(points, k)
+    points_without_centroids = set(points) - set(centroids)
+    points = list(points_without_centroids)
 
-    for i in range(k):
-        centroid_x = random.uniform(float(min_x_point), float(max_x_point))
-        centroid_y = random.uniform(float(min_y_point), float(max_y_point))
-
-        centroids.append((round(centroid_x, 2), round(centroid_y, 2)))
+    for centr in centroids:
+        color = random.sample(colors, 1)[0]
+        colors.remove(color)
+        centroids_colors[str(centr)] = color
 
 
 def calculate_distance_to_centroid(point, centroid):
@@ -132,12 +112,14 @@ def attach_points_to_centroids():
 
 
 def recenter_clusters(k):
-    the_same_centroids = []
-
+    global plot
+    global centroids
     new_plot = {}
     new_centroids = deque()
+    the_same_centroids = deque()
+
     for centroid in plot:
-        centr_points = plot[centroid]
+        centr_points = plot[centroid] + [eval(centroid)]
         number_of_points = len(centr_points)
         points_mean_x = sum([float(p[0]) for p in centr_points]) / number_of_points
         points_mean_y = sum([float(p[1]) for p in centr_points]) / number_of_points
@@ -147,12 +129,14 @@ def recenter_clusters(k):
             print("here")
             the_same_centroids.append(centroid)
         else:
-            new_plot[str(new_center)] = centr_points
+            new_plot[str(new_center)] = plot[centroid]
+
+            old_center_color = centroids_colors[centroid]
+            centroids_colors[str(new_center)] = old_center_color
+            del centroids_colors[centroid]
 
         new_centroids.append(new_center)
 
-    global plot
-    global centroids
     plot = new_plot
     centroids = new_centroids
 
@@ -171,7 +155,7 @@ def solve_kmeans(k):
             print("finish")
             print("centroids")
             print(centroids)
-            break
+            return
         print("centroids")
         print(centroids)
         return solve_kmeans(k)
@@ -193,11 +177,9 @@ def kmeans():
 
     solve_kmeans(k)
 
-    # plot_kmeans()
-
 
 if __name__ == "__main__":
     kmeans()
 
 
-# https://plot.ly/~badovakrasi/35/markers/#plot
+# # https://plot.ly/~badovakrasi/35/markers/#plot
