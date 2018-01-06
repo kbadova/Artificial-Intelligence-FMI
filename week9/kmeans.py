@@ -12,7 +12,6 @@ parser.add_argument('-k', type=int, required=True)
 parser.add_argument('-dataset', type=str, required=True)
 arguments = parser.parse_args()
 
-
 '''
 Steps to reproduce:
 1) Set k centroids randomly in the grid
@@ -40,45 +39,45 @@ def plot_kmeans():
         color = centroids_colors[centr]
         centr_coord = eval(centr)
 
-        points_x = [float(p[0]) for p in centr_points]
-        points_y = [float(p[1]) for p in centr_points]
+        points_x = [eval(p[0]) for p in centr_points]
+        points_y = [eval(p[1]) for p in centr_points]
 
         plt.scatter(points_x, points_y, marker=".", color=color, s=30)
-        plt.scatter([float(centr_coord[0])], [float(centr_coord[1])], marker=".", color="black", s=360)
+        plt.scatter([eval(centr_coord[0])], [eval(centr_coord[1])], marker=".", color="black", s=360)
 
     global counter
     counter += 1
     print(counter)
-    plt.xlim(3, 7)
-    plt.ylim(3, 7)
+    plt.xlim(min_point, max_point)
+    plt.ylim(min_point, max_point)
 
     # plt.show()
     plt.savefig("{}.png".format(counter), dpi=300)
 
 
 def plot_initial_dataset():
-    points_x = [float(p[0]) for p in points]
-    points_y = [float(p[1]) for p in points]
+    points_x = [eval(p[0]) for p in points]
+    points_y = [eval(p[1]) for p in points]
 
     plt.scatter(points_x, points_y, marker=".", color="green", s=30)
 
     global counter
     counter += 1
-    plt.xlim(3, 7)
-    plt.ylim(3, 7)
+    plt.xlim(min_point, max_point)
+    plt.ylim(min_point, max_point)
     plt.savefig("{}.png".format(counter), dpi=300)  # the dpi setting has to play nicely with the chosen markersizes!
 
 
 def plot_centroids():
-    points_x = [float(p[0]) for p in centroids]
-    points_y = [float(p[1]) for p in centroids]
+    points_x = [eval(p[0]) for p in centroids]
+    points_y = [eval(p[1]) for p in centroids]
 
     plt.scatter(points_x, points_y, marker=".", color="black", s=360)
 
     global counter
     counter += 1
-    plt.xlim(3, 7)
-    plt.ylim(3, 7)
+    plt.xlim(min_point, max_point)
+    plt.ylim(min_point, max_point)
     plt.savefig("{}.png".format(counter), dpi=300)
 
 
@@ -104,8 +103,8 @@ def calculate_distance_to_centroid(point, centroid):
     '''
      Distance = sqrt(pow(x2−x1, 2)+ pow(y2−y1, 2))
     '''
-    x_diff = float(centroid[0]) - float(point[0])
-    y_diff = float(centroid[1]) - float(point[1])
+    x_diff = eval(centroid[0]) - eval(point[0])
+    y_diff = eval(centroid[1]) - eval(point[1])
 
     return (pow(x_diff, 2) + pow(y_diff, 2))**(1 / 2)
 
@@ -145,10 +144,10 @@ def recenter_clusters(k):
         centr_points = plot[centroid] + [eval(centroid)]
         number_of_points = len(centr_points)
 
-        points_mean_x = sum([float(p[0]) for p in centr_points]) / number_of_points
-        points_mean_y = sum([float(p[1]) for p in centr_points]) / number_of_points
+        points_mean_x = sum([eval(p[0]) for p in centr_points]) / number_of_points
+        points_mean_y = sum([eval(p[1]) for p in centr_points]) / number_of_points
 
-        new_center = (round(points_mean_x, 2), round(points_mean_y, 2))
+        new_center = (str(round(points_mean_x, 2)), str(round(points_mean_y, 2)))
 
         if str(new_center) == centroid:
             print("the same centroid")
@@ -191,10 +190,19 @@ def kmeans():
     with open(dataset_file, 'r') as f:
         lines = f.read().split('\n')
         for line in lines:
-            coordinates = line.split('\t')
+            if dataset_file == "unbalance.txt":
+                coordinates = line.split(' ')
+            else:
+                coordinates = line.split('\t')
 
             point = (coordinates[0], coordinates[1])
             points.append(point)
+
+    global min_point, max_point
+
+    min_point = eval(min(points)[0])
+    max_point = eval(max(points)[0])
+
     plot_initial_dataset()
 
     initialize_centroids(k)

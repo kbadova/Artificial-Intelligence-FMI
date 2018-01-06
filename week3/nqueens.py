@@ -231,5 +231,3 @@ def n_queens():
 
 if __name__ == "__main__":
     n_queens()
-
-
