@@ -1,7 +1,7 @@
 import argparse
 import random
 import matplotlib.pyplot as plt
-
+from copy import deepcopy
 from collections import deque
 
 plt.rcParams['figure.figsize'] = (16, 9)
@@ -34,39 +34,61 @@ centroids_colors = {}
 
 
 def plot_kmeans():
-    # fig = plt.figure()
-    # ax1 = fig.add_subplot(111)
-    # for tick in ax1.xaxis.get_major_ticks():
-    #     tick.label.set_fontsize(3)
-    #     tick.label.set_rotation('vertical')
-
-    # for tick in ax1.yaxis.get_major_ticks():
-    #     tick.label.set_fontsize(3)
-
+    plt.clf()
     for centr in plot:
         centr_points = plot[centr]
         color = centroids_colors[centr]
         centr_coord = eval(centr)
 
-        points_x = [p[0] for p in centr_points]
-        points_y = [p[1] for p in centr_points]
+        points_x = [float(p[0]) for p in centr_points]
+        points_y = [float(p[1]) for p in centr_points]
 
         plt.scatter(points_x, points_y, marker=".", color=color, s=30)
-        plt.scatter([centr_coord[0]], centr_coord[1], marker=".", color=color, s=360)
+        plt.scatter([float(centr_coord[0])], [float(centr_coord[1])], marker=".", color="black", s=360)
 
     global counter
     counter += 1
-    # plt.xlim(0, 5)
-    # plt.ylim(0, 5)
+    print(counter)
+    plt.xlim(3, 7)
+    plt.ylim(3, 7)
+
+    # plt.show()
+    plt.savefig("{}.png".format(counter), dpi=300)
+
+
+def plot_initial_dataset():
+    points_x = [float(p[0]) for p in points]
+    points_y = [float(p[1]) for p in points]
+
+    plt.scatter(points_x, points_y, marker=".", color="green", s=30)
+
+    global counter
+    counter += 1
+    plt.xlim(3, 7)
+    plt.ylim(3, 7)
     plt.savefig("{}.png".format(counter), dpi=300)  # the dpi setting has to play nicely with the chosen markersizes!
 
 
+def plot_centroids():
+    points_x = [float(p[0]) for p in centroids]
+    points_y = [float(p[1]) for p in centroids]
+
+    plt.scatter(points_x, points_y, marker=".", color="black", s=360)
+
+    global counter
+    counter += 1
+    plt.xlim(3, 7)
+    plt.ylim(3, 7)
+    plt.savefig("{}.png".format(counter), dpi=300)
+
+
 def initialize_centroids(k):
+    global plot
     global points
     global centroids
     global centroids_colors
 
-    colors = ['yellow', 'red', 'green', 'blue', 'orange']
+    colors = ['pink', 'red', 'green', 'blue', 'orange']
 
     centroids = random.sample(points, k)
     points_without_centroids = set(points) - set(centroids)
@@ -102,6 +124,7 @@ def attach_points_to_centroids():
 
     for point in points:
         centroid, _ = get_smallest_distance_from_point_to_centroid(point)
+
         if str(centroid) not in plot:
             plot[str(centroid)] = [point]
         else:
@@ -121,25 +144,27 @@ def recenter_clusters(k):
     for centroid in plot:
         centr_points = plot[centroid] + [eval(centroid)]
         number_of_points = len(centr_points)
+
         points_mean_x = sum([float(p[0]) for p in centr_points]) / number_of_points
         points_mean_y = sum([float(p[1]) for p in centr_points]) / number_of_points
+
         new_center = (round(points_mean_x, 2), round(points_mean_y, 2))
 
         if str(new_center) == centroid:
-            print("here")
+            print("the same centroid")
             the_same_centroids.append(centroid)
         else:
-            new_plot[str(new_center)] = plot[centroid]
-
             old_center_color = centroids_colors[centroid]
             centroids_colors[str(new_center)] = old_center_color
             del centroids_colors[centroid]
 
+        new_plot[str(new_center)] = plot[centroid]
         new_centroids.append(new_center)
 
-    plot = new_plot
+    plot = deepcopy(new_plot)
     centroids = new_centroids
 
+    # Спирам ако всички центроиди не са се сменили
     return len(the_same_centroids) == k
 
 
@@ -147,17 +172,14 @@ def solve_kmeans(k):
     has_result = False
     while has_result is False:
         attach_points_to_centroids()
-        has_result = recenter_clusters(k)
+        plot_kmeans()
 
+        has_result = recenter_clusters(k)
         plot_kmeans()
 
         if has_result is True:
             print("finish")
-            print("centroids")
-            print(centroids)
             return
-        print("centroids")
-        print(centroids)
         return solve_kmeans(k)
 
 
@@ -170,16 +192,16 @@ def kmeans():
         lines = f.read().split('\n')
         for line in lines:
             coordinates = line.split('\t')
+
             point = (coordinates[0], coordinates[1])
             points.append(point)
+    plot_initial_dataset()
 
     initialize_centroids(k)
+    plot_centroids()
 
     solve_kmeans(k)
 
 
 if __name__ == "__main__":
     kmeans()
-
-
-# # https://plot.ly/~badovakrasi/35/markers/#plot

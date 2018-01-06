@@ -1,10 +1,9 @@
-# A python implementation of Kmeans algorithm
+# A python implementation of Kmeans algorithm, saving every point move in separate graphic.
 
-## STeps to run the algorithm:
+## To run the algorithm with normalized data:
+`python kmeans.py -k n -dataset normal.txt`
 
-```
-1) Go to https://plot.ly and register yourself
-2) Reset your API key if needed
-3) run the script with `python kmeans.py -k n -dataset normal.txt`
-4) Go to https://plot.ly/organize/home/ and check the last scatter-mode figure
-```
+## To run the algorithm with unbalanced data:
+`python kmeans.py -k n -dataset unbalance.txt`
+
+`-k` - the number of centroids we would like to have
