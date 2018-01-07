@@ -6,4 +6,4 @@
 ## To run the algorithm with unbalanced data:
 `python kmeans.py -k n -dataset unbalance.txt`
 
-`-k` - the number of centroids we would like to have
+`-k` - the number of centroids we would like to have  

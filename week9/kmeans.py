@@ -1,7 +1,7 @@
 import argparse
 import random
+from numpy import mean
 import matplotlib.pyplot as plt
-from copy import deepcopy
 from collections import deque
 
 plt.rcParams['figure.figsize'] = (16, 9)
@@ -22,14 +22,7 @@ Steps to reproduce:
 4) 2) and 3) until we dont have differences in clusters and centroids
 '''
 
-
-points = deque()
-centroids = deque()
-# Stores for each centroid his points
-plot = {}
-
 counter = 0
-centroids_colors = {}
 
 
 def plot_kmeans():
@@ -39,15 +32,14 @@ def plot_kmeans():
         color = centroids_colors[centr]
         centr_coord = eval(centr)
 
-        points_x = [eval(p[0]) for p in centr_points]
-        points_y = [eval(p[1]) for p in centr_points]
+        points_x = [p[0] for p in centr_points]
+        points_y = [p[1] for p in centr_points]
 
         plt.scatter(points_x, points_y, marker=".", color=color, s=30)
-        plt.scatter([eval(centr_coord[0])], [eval(centr_coord[1])], marker=".", color="black", s=360)
+        plt.scatter([centr_coord[0]], [centr_coord[1]], marker=".", color="black", s=360)
 
     global counter
     counter += 1
-    print(counter)
     plt.xlim(min_point, max_point)
     plt.ylim(min_point, max_point)
 
@@ -56,8 +48,8 @@ def plot_kmeans():
 
 
 def plot_initial_dataset():
-    points_x = [eval(p[0]) for p in points]
-    points_y = [eval(p[1]) for p in points]
+    points_x = [p[0] for p in points]
+    points_y = [p[1] for p in points]
 
     plt.scatter(points_x, points_y, marker=".", color="green", s=30)
 
@@ -69,8 +61,8 @@ def plot_initial_dataset():
 
 
 def plot_centroids():
-    points_x = [eval(p[0]) for p in centroids]
-    points_y = [eval(p[1]) for p in centroids]
+    points_x = [p[0] for p in centroids]
+    points_y = [p[1] for p in centroids]
 
     plt.scatter(points_x, points_y, marker=".", color="black", s=360)
 
@@ -103,8 +95,8 @@ def calculate_distance_to_centroid(point, centroid):
     '''
      Distance = sqrt(pow(x2−x1, 2)+ pow(y2−y1, 2))
     '''
-    x_diff = eval(centroid[0]) - eval(point[0])
-    y_diff = eval(centroid[1]) - eval(point[1])
+    x_diff = centroid[0] - point[0]
+    y_diff = centroid[1] - point[1]
 
     return (pow(x_diff, 2) + pow(y_diff, 2))**(1 / 2)
 
@@ -142,15 +134,13 @@ def recenter_clusters(k):
 
     for centroid in plot:
         centr_points = plot[centroid] + [eval(centroid)]
-        number_of_points = len(centr_points)
 
-        points_mean_x = sum([eval(p[0]) for p in centr_points]) / number_of_points
-        points_mean_y = sum([eval(p[1]) for p in centr_points]) / number_of_points
+        points_mean_x = mean([p[0] for p in centr_points])
+        points_mean_y = mean([p[1] for p in centr_points])
 
-        new_center = (str(round(points_mean_x, 2)), str(round(points_mean_y, 2)))
+        new_center = (round(float(points_mean_x), 2), round(float(points_mean_y), 2))
 
         if str(new_center) == centroid:
-            print("the same centroid")
             the_same_centroids.append(centroid)
         else:
             old_center_color = centroids_colors[centroid]
@@ -160,25 +150,35 @@ def recenter_clusters(k):
         new_plot[str(new_center)] = plot[centroid]
         new_centroids.append(new_center)
 
-    plot = deepcopy(new_plot)
+    plot = new_plot
     centroids = new_centroids
-
+    print(centroids)
+    print(len(centroids))
     # Спирам ако всички центроиди не са се сменили
     return len(the_same_centroids) == k
 
 
 def solve_kmeans(k):
+    global iterations
+
+    if iterations == MAX_ITETATIONS:
+        return False
+
     has_result = False
     while has_result is False:
         attach_points_to_centroids()
-        plot_kmeans()
+        # plot_kmeans()
 
         has_result = recenter_clusters(k)
-        plot_kmeans()
+        iterations += 1
+        print("Iteration")
+        print(iterations)
+        # plot_kmeans()
 
         if has_result is True:
-            print("finish")
-            return
+            print("FINISH FINISH FINISH FINISH FINISH")
+            # plot_kmeans()
+            return True
         return solve_kmeans(k)
 
 
@@ -186,6 +186,8 @@ def kmeans():
     k = arguments.k
     dataset_file = arguments.dataset
     global points
+
+    points = deque()
 
     with open(dataset_file, 'r') as f:
         lines = f.read().split('\n')
@@ -195,20 +197,41 @@ def kmeans():
             else:
                 coordinates = line.split('\t')
 
-            point = (coordinates[0], coordinates[1])
+            point = (eval(coordinates[0]), eval(coordinates[1]))
             points.append(point)
 
     global min_point, max_point
 
-    min_point = eval(min(points)[0])
-    max_point = eval(max(points)[0])
+    min_point = min(points)[0]
+    max_point = max(points)[0]
 
-    plot_initial_dataset()
+    global MAX_ITETATIONS
+    MAX_ITETATIONS = 30
+
+    global iterations
+    iterations = 0
+
+    global centroids
+    centroids = deque()
+
+    global centroids_colors
+    centroids_colors = {}
+
+    global plot
+    plot = {}
+
+    # plot_initial_dataset()
 
     initialize_centroids(k)
-    plot_centroids()
+    # plot_centroids()
 
-    solve_kmeans(k)
+    result = solve_kmeans(k)
+
+    if result is False:
+        print("RESTART RESTART RESTART RESTART RESTART")
+        return kmeans()
+    print("plot here")
+    return plot_kmeans()
 
 
 if __name__ == "__main__":
